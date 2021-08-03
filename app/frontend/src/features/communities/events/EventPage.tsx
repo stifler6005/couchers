@@ -40,7 +40,7 @@ export const useEventPageStyles = makeStyles((theme) => ({
       height: 200,
     },
     width: "100%",
-    objectFit: "fill",
+    objectFit: "cover",
     marginBlockStart: theme.spacing(2),
   },
   header: {
