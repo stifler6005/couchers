@@ -33,7 +33,7 @@ from couchers.models import (
 )
 from couchers.resources import language_is_allowed, region_is_allowed
 from couchers.sql import couchers_select as select
-from couchers.tasks import send_friend_request_email, send_report_email, send_friend_request_accepted_email
+from couchers.tasks import send_friend_request_accepted_email, send_friend_request_email, send_report_email
 from couchers.utils import Timestamp_from_datetime, create_coordinate, is_valid_name, now
 from proto import api_pb2, api_pb2_grpc, media_pb2
 
@@ -589,6 +589,16 @@ class API(api_pb2_grpc.APIServicer):
             session.add(friend_relationship)
             session.commit()
 
+            notify(
+                content=easy_notification_formatter(
+                    f"{friend_request.from_user.name} wants to be your friend",
+                    f"{friend_request.from_user.name} sent you a friend request",
+                ),
+                user_id=friend_request.to_user_id,
+                topic="friend_request",
+                action="create",
+            )
+
             send_friend_request_email(friend_relationship)
 
             return empty_pb2.Empty()
@@ -658,6 +668,15 @@ class API(api_pb2_grpc.APIServicer):
             if friend_request.status == FriendStatus.accepted:
                 send_friend_request_accepted_email(friend_request)
 
+                notify(
+                    content=easy_notification_formatter(
+                        "Friend request accepted", f"{friend_request.to_user.name} accepted your friend request"
+                    ),
+                    user_id=friend_request.from_user_id,
+                    topic="friend_request",
+                    action="accept",
+                )
+
             session.commit()
 
             return empty_pb2.Empty()
@@ -677,6 +696,8 @@ class API(api_pb2_grpc.APIServicer):
 
             friend_request.status = FriendStatus.cancelled
             friend_request.time_responded = func.now()
+
+            # note no notifications
 
             session.commit()
 
@@ -707,6 +728,13 @@ class API(api_pb2_grpc.APIServicer):
             session.commit()
 
             send_report_email(complaint)
+
+            notify(
+                content=easy_notification_formatter("You reported a user", f"You reported a user"),
+                user_id=context.user_id,
+                topic="user_report",
+                action="create",
+            )
 
             return empty_pb2.Empty()
 
