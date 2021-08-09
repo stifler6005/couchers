@@ -1,13 +1,6 @@
-import {
-  Card,
-  Theme,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from "@material-ui/core";
+import { Card, Theme, Typography } from "@material-ui/core";
 import { AttendeesIcon, CalendarIcon } from "components/Icons";
 import { Event } from "proto/events_pb";
-import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { routeToEvent } from "routes";
 import { timestamp2Date } from "utils/date";
@@ -15,8 +8,8 @@ import dayjs from "utils/dayjs";
 import makeStyles from "utils/makeStyles";
 
 import { getAttendeesCount, ONLINE } from "../constants";
-import getContentSummary from "../getContentSummary";
 import eventImagePlaceholder from "./eventImagePlaceholder.svg";
+import { useTruncatedContent } from "./hooks";
 
 const useStyles = makeStyles<Theme, { eventImageSrc: string }>((theme) => ({
   overviewRoot: {
@@ -85,17 +78,12 @@ export default function LongEventCard({ event }: LongEventCardProps) {
   const classes = useStyles({
     eventImageSrc: event.photoUrl || eventImagePlaceholder,
   });
-  const theme = useTheme();
-  const isBelowLg = useMediaQuery(theme.breakpoints.down("md"));
 
-  const truncatedContent = useMemo(
-    () =>
-      getContentSummary({
-        originalContent: event.content,
-        maxLength: isBelowLg ? 120 : 300,
-      }),
-    [event.content, isBelowLg]
-  );
+  const truncatedContent = useTruncatedContent({
+    content: event.content,
+    mobileCharCount: 120,
+    desktopCharCount: 300,
+  });
   const startTime = dayjs(timestamp2Date(event.startTime!));
 
   return (

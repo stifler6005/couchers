@@ -1,9 +1,13 @@
+import { useMediaQuery, useTheme } from "@material-ui/core";
 import useUsers from "features/userQueries/useUsers";
 import { Error as GrpcError } from "grpc-web";
 import { ListEventAttendeesRes, ListEventOrganizersRes } from "proto/events_pb";
 import { eventAttendeesKey, eventOrganisersKey, QueryType } from "queryKeys";
+import { useMemo } from "react";
 import { useInfiniteQuery } from "react-query";
 import { service } from "service";
+
+import getContentSummary from "../getContentSummary";
 
 export interface UseEventUsersInput {
   eventId: number;
@@ -77,4 +81,28 @@ export function useEventAttendees({
     isAttendeesLoading,
     isAttendeesRefetching,
   };
+}
+
+interface UseTruncatedContentInput {
+  content: string;
+  mobileCharCount: number;
+  desktopCharCount: number;
+}
+export function useTruncatedContent({
+  content,
+  mobileCharCount,
+  desktopCharCount,
+}: UseTruncatedContentInput) {
+  const theme = useTheme();
+  const isBelowLg = useMediaQuery(theme.breakpoints.down("md"));
+  const truncatedContent = useMemo(
+    () =>
+      getContentSummary({
+        originalContent: content,
+        maxLength: isBelowLg ? mobileCharCount : desktopCharCount,
+      }),
+    [content, desktopCharCount, isBelowLg, mobileCharCount]
+  );
+
+  return truncatedContent;
 }

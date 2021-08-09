@@ -9,7 +9,6 @@ import {
 import classNames from "classnames";
 import { AttendeesIcon, CalendarIcon } from "components/Icons";
 import { Event } from "proto/events_pb";
-import { useMemo } from "react";
 import LinesEllipsis from "react-lines-ellipsis";
 import { Link } from "react-router-dom";
 import { routeToEvent } from "routes";
@@ -18,9 +17,9 @@ import dayjs from "utils/dayjs";
 import makeStyles from "utils/makeStyles";
 
 import { getAttendeesCount, ONLINE } from "../constants";
-import getContentSummary from "../getContentSummary";
 import { details, VIEW_DETAILS_FOR_LINK } from "./constants";
 import eventImagePlaceholder from "./eventImagePlaceholder.svg";
+import { useTruncatedContent } from "./hooks";
 
 const useStyles = makeStyles<Theme, { eventImageSrc: string }>((theme) => ({
   root: {
@@ -97,10 +96,11 @@ export default function EventCard({ event, className }: EventCardProps) {
   const startTime = dayjs(timestamp2Date(event.startTime!));
   const endTime = dayjs(timestamp2Date(event.endTime!));
 
-  const truncatedContent = useMemo(
-    () => getContentSummary({ originalContent: event.content, maxLength: 200 }),
-    [event.content]
-  );
+  const truncatedContent = useTruncatedContent({
+    content: event.content,
+    mobileCharCount: 100,
+    desktopCharCount: 200,
+  });
 
   return (
     <Card

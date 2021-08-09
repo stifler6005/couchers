@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import events from "test/fixtures/events.json";
 import wrapper from "test/hookWrapper";
 import timezoneMock from "timezone-mock";
+import createMatchMedia from "utils/createMatchMedia";
 
 import { getAttendeesCount } from "../constants";
 import { VIEW_DETAILS_FOR_LINK } from "./constants";
@@ -12,10 +13,16 @@ const [firstEvent, secondEvent, thirdEvent] = events;
 describe("Event card", () => {
   beforeEach(() => {
     timezoneMock.register("UTC");
+    // @ts-expect-error
+    window.innerWidth = 1280;
+    window.matchMedia = createMatchMedia(window.innerWidth);
   });
 
   afterEach(() => {
     timezoneMock.unregister();
+    // @ts-expect-error reset back to default JSDom window width
+    window.innerWidth = 1024;
+    window.matchMedia = createMatchMedia(window.innerWidth);
   });
 
   it("renders an offline event card details correctly with the same start and end day", async () => {
